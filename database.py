@@ -56,16 +56,34 @@ async def get_stats(user_id: str, period: str = "all"):
     async with new_session() as session:
         query = select(func.sum(Expense.amount)).where(Expense.user_id == user_id)
 
-        match period:
-            case "month":
-                query = query.filter(extract('month', Expense.date) == datetime.now().month, extract('year', Expense.date) == datetime.now().year)
-            case "year":
-                query = query.filter(extract('year', Expense.date) == datetime.now().year)
-            case "all":
-                pass
-            case _:
-                raise ValueError("Invalid period, use 'month', 'year' or 'all'")
+        query = filter_query(query, period)
 
         result = await session.execute(query)
         total = result.scalar()
         return total if total else 0
+
+async def get_expenses_by_category(user_id: str, period: str = "month"):
+    async with new_session() as session:
+        query = select(Expense.category, func.sum(Expense.amount)) \
+            .where(Expense.user_id == user_id) \
+            .group_by(Expense.category)
+
+        query = filter_query(query, period)
+
+        result = await session.execute(query)
+        return result.all()
+
+
+def filter_query(query, period):
+    match period:
+        case "month":
+            query = query.filter(extract('month', Expense.date) == datetime.now().month,
+                                 extract('year', Expense.date) == datetime.now().year)
+        case "year":
+            query = query.filter(extract('year', Expense.date) == datetime.now().year)
+        case "all":
+            pass
+        case _:
+            raise ValueError("Invalid period, use 'month', 'year' or 'all'")
+
+    return query
