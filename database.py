@@ -33,7 +33,9 @@ async def create_tables():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-async def add_expense(amount: int, category: str, user_id: str, date=datetime.now()):
+async def add_expense(amount: int, category: str, user_id: str, date=None):
+    if date is None:
+        date = datetime.now()
     async with new_session() as session:
         expense = Expense(
             amount=amount,
@@ -44,29 +46,26 @@ async def add_expense(amount: int, category: str, user_id: str, date=datetime.no
         session.add(expense)
         await session.commit()
 
-async def get_total_expenses(user_id: str) -> int:
-    async with new_session() as session:
-        query = select(func.sum(Expense.amount)).where(Expense.user_id == user_id)
-        result = await session.execute(query)
-        total = result.scalar()
-        return total if total else 0
-
-async def get_total_expenses_month(user_id: str, month: int, year: int):
-    async with new_session() as session:
-        query = select(func.sum(Expense.amount)).where(Expense.user_id == user_id).filter(extract('month', Expense.date) == month).filter(extract('year', Expense.date) == year)
-        result = await session.execute(query)
-        total = result.scalar()
-        return total if total else 0
-
-async def get_total_expenses_year(user_id: str, year: int):
-    async with new_session() as session:
-        query = select(func.sum(Expense.amount)).where(Expense.user_id == user_id).filter(extract('year', Expense.date) == year)
-        result = await session.execute(query)
-        total = result.scalar()
-        return total if total else 0
-
 async def remove_all_expenses(user_id: str):
     async with new_session() as session:
         query = delete(Expense).where(Expense.user_id == user_id)
         await session.execute(query)
         await session.commit()
+
+async def get_stats(user_id: str, period: str = "all"):
+    async with new_session() as session:
+        query = select(func.sum(Expense.amount)).where(Expense.user_id == user_id)
+
+        match period:
+            case "month":
+                query = query.filter(extract('month', Expense.date) == datetime.now().month, extract('year', Expense.date) == datetime.now().year)
+            case "year":
+                query = query.filter(extract('year', Expense.date) == datetime.now().year)
+            case "all":
+                pass
+            case _:
+                raise ValueError("Invalid period, use 'month', 'year' or 'all'")
+
+        result = await session.execute(query)
+        total = result.scalar()
+        return total if total else 0
