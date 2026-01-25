@@ -2,8 +2,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import io
 
-from database import get_stats, get_expenses_by_category
-
 def parse_message(message: str):
     parts = message.split(' ', maxsplit=1)
     if len(parts) != 2:
@@ -18,6 +16,8 @@ def parse_message(message: str):
     return amount, category.strip().capitalize()
 
 def create_pie_chart(expenses: list[tuple[str, int]]):
+    if not expenses:
+        return None
     amounts = []
     categories = []
     for category, amount in expenses:

@@ -38,11 +38,14 @@ async def command_month_handler(message: Message) -> None:
     msg_text = stats_to_text(total_month, categories, "month")
 
     image_file = create_pie_chart(categories)
-    input_file = BufferedInputFile(image_file.read(), filename="pie_chart.png")
+    if image_file:
+        input_file = BufferedInputFile(image_file.read(), filename="pie_chart.png")
 
-    await message.answer_photo(photo=input_file,
-                               caption=msg_text,
-                               parse_mode="Markdown")
+        await message.answer_photo(photo=input_file,
+                                   caption=msg_text,
+                                   parse_mode="Markdown")
+    else:
+        await message.answer(msg_text, parse_mode="Markdown")
 
 
 @dp.message(Command("year"))
@@ -54,11 +57,14 @@ async def command_year_handler(message: Message) -> None:
     msg_text = stats_to_text(total_year, categories, "year")
 
     image_file = create_pie_chart(categories)
-    input_file = BufferedInputFile(image_file.read(), filename="pie_chart.png")
+    if image_file:
+        input_file = BufferedInputFile(image_file.read(), filename="pie_chart.png")
 
-    await message.answer_photo(photo=input_file,
-                               caption=msg_text,
-                               parse_mode="Markdown")
+        await message.answer_photo(photo=input_file,
+                                   caption=msg_text,
+                                   parse_mode="Markdown")
+    else:
+        await message.answer(msg_text, parse_mode="Markdown")
 
 
 @dp.message(Command("all"))
@@ -70,11 +76,14 @@ async def command_all_handler(message: Message) -> None:
     msg_text = stats_to_text(total_all, categories, "all")
 
     image_file = create_pie_chart(categories)
-    input_file = BufferedInputFile(image_file.read(), filename="pie_chart.png")
+    if image_file:
+        input_file = BufferedInputFile(image_file.read(), filename="pie_chart.png")
 
-    await message.answer_photo(photo=input_file,
-                               caption=msg_text,
-                               parse_mode="Markdown")
+        await message.answer_photo(photo=input_file,
+                                   caption=msg_text,
+                                   parse_mode="Markdown")
+    else:
+        await message.answer(msg_text, parse_mode="Markdown")
 
 
 @dp.message(Command("delete_all"))
