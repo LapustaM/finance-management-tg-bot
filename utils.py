@@ -24,8 +24,10 @@ def create_pie_chart(expenses: list[tuple[str, int]]):
         categories.append(category)
         amounts.append(amount)
 
+    colors = sns.color_palette("pastel")
+
     fig, ax = plt.subplots(figsize=(6, 6))
-    ax.pie(amounts, labels=categories, autopct='%1.1f%%', startangle=90)
+    ax.pie(amounts, labels=categories, autopct='%1.1f%%', startangle=90, colors=colors)
     ax.set_title("Expenses by category")
 
     buf = io.BytesIO()
