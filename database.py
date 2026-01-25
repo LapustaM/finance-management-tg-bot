@@ -27,3 +27,8 @@ class Expense(Base):
     category: Mapped[str] = mapped_column(String)
     date: Mapped[datetime] = mapped_column(DateTime)
     user_id: Mapped[str] = mapped_column(String)
+
+
+async def create_tables():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
