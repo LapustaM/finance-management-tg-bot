@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
-from sqlalchemy import String, Integer, DateTime, select, func, extract
+from sqlalchemy import String, Integer, DateTime, select, func, extract, delete
 from dotenv import load_dotenv
 import os
 from datetime import datetime
@@ -64,3 +64,9 @@ async def get_total_expenses_year(user_id: str, year: int):
         result = await session.execute(query)
         total = result.scalar()
         return total if total else 0
+
+async def remove_all_expenses(user_id: str):
+    async with new_session() as session:
+        query = delete(Expense).where(Expense.user_id == user_id)
+        await session.execute(query)
+        await session.commit()
