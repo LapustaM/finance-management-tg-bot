@@ -2,6 +2,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import io
 
+from database import get_stats, get_expenses_by_category
+
 def parse_message(message: str):
     parts = message.split(' ', maxsplit=1)
     if len(parts) != 2:
@@ -15,7 +17,7 @@ def parse_message(message: str):
     amount = int(amount_str)
     return amount, category.strip().capitalize()
 
-def create_pie_chart(expenses):
+def create_pie_chart(expenses: list[tuple[str, int]]):
     amounts = []
     categories = []
     for category, amount in expenses:
@@ -31,3 +33,18 @@ def create_pie_chart(expenses):
     buf.seek(0)
     plt.close(fig)
     return buf
+
+
+def stats_to_text(total: int, categories: list[tuple[str, int]], period: str):
+    if not categories:
+        if period == "all":
+            return "No expenses found"
+        return f"No expenses found for current {period}"
+    if period == "all":
+        text_lines = [f"All expenses:\n"]
+    else:
+        text_lines = [f"Expenses for current {period}:\n"]
+    for category, amount in categories:
+        text_lines.append(f"- {category}: {amount}")
+    text_lines.append(f"\nTotal: {total}")
+    return "\n".join(text_lines)

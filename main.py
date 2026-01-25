@@ -11,7 +11,7 @@ from aiogram.filters import CommandStart, Command
 from aiogram.types import Message, BufferedInputFile
 
 from database import get_stats, get_expenses_by_category, add_expense
-from utils import parse_message, create_pie_chart
+from utils import parse_message, create_pie_chart, stats_to_text
 
 load_dotenv()
 TOKEN = getenv("BOT_TOKEN")
@@ -25,34 +25,55 @@ async def command_start_handler(message: Message) -> None:
                          "Write messages with amount and category\n"
                          "For example:\n"
                          "'50 food'\n"
-                         "Commands:\n"
-                         "/stats - month statistics\n"
-                         "/all - all time statistics"
+                         "'120 clothes and accessorises'"
                          , parse_mode="Markdown")
 
 
-@dp.message(Command("stats"))
-async def command_stats_handler(message: Message) -> None:
+@dp.message(Command("month"))
+async def command_month_handler(message: Message) -> None:
     user_id = str(message.from_user.id)
     total_month = await get_stats(user_id, period="month")
     categories = await get_expenses_by_category(user_id, period="month")
 
-    text_lines = [f"Expenses for current month:\n"]
-
-    if not categories:
-        await message.answer("No expenses found for current month")
-        return
-
-    for cat_name, amount in categories:
-        text_lines.append(f"- {cat_name}: {amount}")
-
-    text_lines.append(f"\nTotal: {total_month}")
+    msg_text = stats_to_text(total_month, categories, "month")
 
     image_file = create_pie_chart(categories)
     input_file = BufferedInputFile(image_file.read(), filename="pie_chart.png")
 
     await message.answer_photo(photo=input_file,
-                               caption="\n".join(text_lines),
+                               caption=msg_text,
+                               parse_mode="Markdown")
+
+
+@dp.message(Command("year"))
+async def command_year_handler(message: Message) -> None:
+    user_id = str(message.from_user.id)
+    total_year = await get_stats(user_id, period="year")
+    categories = await get_expenses_by_category(user_id, period="year")
+
+    msg_text = stats_to_text(total_year, categories, "year")
+
+    image_file = create_pie_chart(categories)
+    input_file = BufferedInputFile(image_file.read(), filename="pie_chart.png")
+
+    await message.answer_photo(photo=input_file,
+                               caption=msg_text,
+                               parse_mode="Markdown")
+
+
+@dp.message(Command("all"))
+async def command_all_handler(message: Message) -> None:
+    user_id = str(message.from_user.id)
+    total_all = await get_stats(user_id, period="all")
+    categories = await get_expenses_by_category(user_id, period="all")
+
+    msg_text = stats_to_text(total_all, categories, "all")
+
+    image_file = create_pie_chart(categories)
+    input_file = BufferedInputFile(image_file.read(), filename="pie_chart.png")
+
+    await message.answer_photo(photo=input_file,
+                               caption=msg_text,
                                parse_mode="Markdown")
 
 
@@ -64,19 +85,14 @@ async def message_handler(message: Message) -> None:
     except ValueError as e:
         await message.answer(str(e))
         return
-
     user_id = str(message.from_user.id)
     await add_expense(amount=amount, category=category, user_id=user_id)
     await message.answer(f"Added {amount} to {category} category")
 
 
 async def main() -> None:
-    # Initialize Bot instance with default bot properties which will be passed to all API calls
     bot = Bot(token=TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
-
-    # And the run events dispatching
     await dp.start_polling(bot)
-
 
 
 if __name__ == "__main__":
