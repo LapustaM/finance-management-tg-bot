@@ -10,7 +10,7 @@ from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message, BufferedInputFile
 
-from database import get_stats, get_expenses_by_category, add_expense
+from database import get_stats, get_expenses_by_category, add_expense, remove_all_expenses
 from utils import parse_message, create_pie_chart, stats_to_text
 
 load_dotenv()
@@ -75,6 +75,13 @@ async def command_all_handler(message: Message) -> None:
     await message.answer_photo(photo=input_file,
                                caption=msg_text,
                                parse_mode="Markdown")
+
+
+@dp.message(Command("delete_all"))
+async def command_delete_all_handler(message: Message) -> None:
+    user_id = str(message.from_user.id)
+    await remove_all_expenses(user_id)
+    await message.answer("All expenses deleted")
 
 
 @dp.message(F.text)
