@@ -1,11 +1,10 @@
 import matplotlib.pyplot as plt
 import seaborn as sns
-from PIL.ImageOps import expand
-
+import io
 
 def parse_message(message: str):
     parts = message.split(' ', maxsplit=1)
-    if len(parts) > 2:
+    if len(parts) != 2:
         raise ValueError("Invalid message format")
 
     amount_str, category = parts
@@ -22,6 +21,13 @@ def create_pie_chart(expenses):
     for category, amount in expenses:
         categories.append(category)
         amounts.append(amount)
-    colors = sns.color_palette("pastel")
-    plt.pie(amounts, labels=categories, colors=colors, autopct='%.0f%%')
-    plt.show()
+
+    fig, ax = plt.subplots(figsize=(6, 6))
+    ax.pie(amounts, labels=categories, autopct='%1.1f%%', startangle=90)
+    ax.set_title("Expenses by category")
+
+    buf = io.BytesIO()
+    fig.savefig(buf, format='png', bbox_inches='tight')
+    buf.seek(0)
+    plt.close(fig)
+    return buf
