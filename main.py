@@ -8,10 +8,10 @@ from aiogram import Bot, Dispatcher, F
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart, Command
-from aiogram.types import Message
+from aiogram.types import Message, BufferedInputFile
 
 from database import get_stats, get_expenses_by_category, add_expense
-from utils import parse_message
+from utils import parse_message, create_pie_chart
 
 load_dotenv()
 TOKEN = getenv("BOT_TOKEN")
@@ -48,7 +48,12 @@ async def command_stats_handler(message: Message) -> None:
 
     text_lines.append(f"\nTotal: {total_month}")
 
-    await message.answer("\n".join(text_lines), parse_mode="Markdown")
+    image_file = create_pie_chart(categories)
+    input_file = BufferedInputFile(image_file.read(), filename="pie_chart.png")
+
+    await message.answer_photo(photo=input_file,
+                               caption="\n".join(text_lines),
+                               parse_mode="Markdown")
 
 
 @dp.message(F.text)
