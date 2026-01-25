@@ -32,3 +32,14 @@ class Expense(Base):
 async def create_tables():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+
+async def add_expense(amount: int, category: str, user_id: str):
+    async with new_session() as session:
+        expense = Expense(
+            amount=amount,
+            category=category,
+            date=datetime.now(),
+            user_id=user_id
+        )
+        session.add(expense)
+        await session.commit()
