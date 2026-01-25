@@ -57,3 +57,10 @@ async def get_total_expenses_month(user_id: str, month: int, year: int):
         result = await session.execute(query)
         total = result.scalar()
         return total if total else 0
+
+async def get_total_expenses_year(user_id: str, year: int):
+    async with new_session() as session:
+        query = select(func.sum(Expense.amount)).where(Expense.user_id == user_id).filter(extract('year', Expense.date) == year)
+        result = await session.execute(query)
+        total = result.scalar()
+        return total if total else 0
