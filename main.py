@@ -10,7 +10,9 @@ from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message, BufferedInputFile
 
-from database import get_stats, get_expenses_by_category, add_expense, remove_all_expenses
+from database import get_stats, get_expenses_by_category, add_expense, remove_all_expenses, create_tables
+
+create_tables()
 from utils import parse_message, create_pie_chart, stats_to_text
 
 load_dotenv()
@@ -112,5 +114,6 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
+    asyncio.run(create_tables())
     logging.basicConfig(level=logging.INFO, stream=sys.stdout)
     asyncio.run(main())
